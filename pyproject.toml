@@ -1,0 +1,90 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rlverify"
+version = "0.1.0.dev0"
+description = "Audit RL environment graders for hackability before you train on them."
+readme = "README.md"
+license = { text = "Apache-2.0" }
+requires-python = ">=3.9"
+keywords = ["rl", "reward-hacking", "verifier", "evaluation", "rlvr", "grader"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+# Deliberately tiny. The static + corpus path -- the half that covers all 1454
+# public environments -- is stdlib plus certifi. Everything that needs a heavier
+# dependency is an extra, so `pip install rlverify` stays instant and the tool
+# runs on whatever Python a user already has.
+dependencies = [
+    "certifi>=2023.7.22",
+]
+
+[project.optional-dependencies]
+# Statistics for the dynamic pass (bootstrap CIs, FDR, power).
+stats = [
+    "numpy>=1.21",
+    "scipy>=1.7",
+]
+# Adapters that import environment code. Requires a modern interpreter because
+# `verifiers` itself does: >=3.11,<3.14.
+envs = [
+    "verifiers>=0.2.1; python_version>='3.11'",
+]
+# PDF rendering only. The report layer itself is stdlib: `--out report.html`
+# produces the same document with nothing installed, and any browser prints it
+# to PDF. This extra buys `--out report.pdf` in one step.
+report = [
+    "reportlab>=3.6",
+]
+dev = [
+    "pytest>=7.0",
+    "ruff>=0.4",
+]
+all = ["rlverify[stats,envs,dev]"]
+
+[project.scripts]
+rlverify = "rlverify.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/rlverify/rlverify"
+Issues = "https://github.com/rlverify/rlverify/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rlverify"]
+
+# Without this, hatchling walks the whole repo and the sdist swallows
+# `.claude/worktrees/*/.venv-cli`, whose absolute `bin/python3` symlink makes the
+# tarball unextractable -- the build fails rather than shipping something broken,
+# which is the good version of this bug. An explicit allowlist also keeps the
+# corpus store, the report drafts and the reproduction logs out of a published
+# artifact: `reports/` names other people's environments and is not ours to ship.
+[tool.hatch.build.targets.sdist]
+# Leading slashes anchor to the project root. Unanchored, `README.md` also
+# matched `.claude/worktrees/rlverify-cli/README.md` and shipped the worktree's
+# copy alongside ours.
+include = [
+    "/src/rlverify",
+    "/README.md",
+    "/pyproject.toml",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

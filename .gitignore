@@ -1,0 +1,25 @@
+# macOS
+.DS_Store
+
+# Build artefacts
+dist/
+build/
+*.egg-info/
+__pycache__/
+*.pyc
+
+# Virtualenvs
+.venv/
+.venv-cli/
+
+# Agent worktrees and internal planning
+.claude/
+docs/superpowers/
+
+# Private: findings pre-publication, outreach, pricing, applications, personal docs.
+# Everything in here is either an unpublished finding, business strategy, or personal.
+# It must never be committed to a repo that will be public.
+reports/
+
+# Internal working notes
+NEXT.md
